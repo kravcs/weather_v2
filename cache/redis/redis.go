@@ -6,11 +6,13 @@ import (
 	r "github.com/go-redis/redis"
 )
 
-type Storage struct {
+// RedisStorage is an option for caching
+type RedisStorage struct {
 	client *r.Client
 }
 
-func NewStorage(url string) (*Storage, error) {
+// NewStorage sets a new instance of redis
+func NewStorage(url string) (*RedisStorage, error) {
 	var opts *r.Options
 	var err error
 
@@ -18,16 +20,18 @@ func NewStorage(url string) (*Storage, error) {
 		return nil, err
 	}
 
-	return &Storage{
+	return &RedisStorage{
 		client: r.NewClient(opts),
 	}, nil
 }
 
-func (s *Storage) Get(key string) []byte {
+// Get implements getting something from cache
+func (s RedisStorage) Get(key string) []byte {
 	val, _ := s.client.Get(key).Bytes()
 	return val
 }
 
-func (s *Storage) Set(key string, content []byte, duration time.Duration) {
+// Set implements setting something to cache
+func (s *RedisStorage) Set(key string, content []byte, duration time.Duration) {
 	s.client.Set(key, content, duration)
 }

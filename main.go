@@ -7,51 +7,64 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/go-playground/validator"
 	"github.com/gorilla/mux"
 
-	"github.com/kravcs/gogo/cache"
-	"github.com/kravcs/gogo/cache/redis"
-	"github.com/kravcs/gogo/config"
-	"github.com/kravcs/gogo/handler"
+	cache "github.com/kravcs/gogo/cache"
+	redis "github.com/kravcs/gogo/cache/redis"
+	cfg "github.com/kravcs/weather_v2/config"
+	handler "github.com/kravcs/weather_v2/handler"
 )
 
-var storage cache.Storage
+var (
+	config  cfg.Config
+	storage cache.Storage
+)
 
-func init() {
+func main() {
+	validate := validator.New()
+
+	config, err := cfg.LoadConfig(validate)
+	if err != nil {
+		log.Fatalf("Error while loading configuration:\n %v", err.Error())
+	}
+
+	storageStart()
+	serverStart()
+}
+
+func storageStart() {
 	var err error
 	connectionInfo := fmt.Sprintf(
 		"%s://%s:%d",
-		config.Configuration.Database.Driver,
-		config.Configuration.Database.Host,
-		config.Configuration.Database.Port,
+		config.Database.Driver,
+		config.Database.Host,
+		config.Database.Port,
 	)
 	if storage, err = redis.NewStorage(connectionInfo); err != nil {
 		log.Fatalf("Redis error: %v", err)
 	}
-	handler.Storage = storage
 	fmt.Println("Redis started!")
 }
 
-func main() {
-	router := newRouter()
-	serverStart(router)
-}
+func serverStart() {
 
-func newRouter() *mux.Router {
 	router := mux.NewRouter()
 
-	router.HandleFunc("/weather", handler.GetWeatherHandler).Methods("GET")
+	wh := &handler.WeatherHandler{
+		APIEnpoint:    config.API.Endpoint,
+		APIKey:        config.API.Apikey,
+		CacheDuration: config.Cache.Duration,
+		Storage: storage
+	}
+	router.Handle("/weather", handler.ErrorHandler(wh.GetWeatherHandler)).Methods("GET")
 
-	return router
-}
-
-func serverStart(router *mux.Router) {
-	port := strconv.Itoa(config.Configuration.Server.Port)
 	server := http.Server{
-		Addr:        ":" + port,
+		Addr:        ":" + strconv.Itoa(config.Server.Port),
 		Handler:     router,
 		ReadTimeout: 10 * time.Second,
 	}
+
 	fmt.Println("Server started!")
 	log.Fatal(server.ListenAndServe())
 }

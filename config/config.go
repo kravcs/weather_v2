@@ -2,36 +2,50 @@ package config
 
 import (
 	"fmt"
-	"log"
-	"os"
 
-	"gopkg.in/yaml.v2"
-
-	"github.com/kravcs/gogo/models"
+	"github.com/go-playground/validator"
+	"github.com/joho/godotenv"
+	"github.com/kelseyhightower/envconfig"
 )
 
-var Configuration models.Config
-
-func init() {
-	var err error
-
-	Configuration, err = LoadConfiguration("config.yml")
-
-	if err != nil {
-		log.Fatalf("Config error: %v", err)
+// Config describes the structure of imported config
+type Config struct {
+	API struct {
+		Apikey   string `envconfig:"API_KEY" validate:"required"`
+		Endpoint string `envconfig:"API_ENDPOINT" validate:"required"`
 	}
-	fmt.Println("Config initialized")
+	Cache struct {
+		Duration int `envconfig:"CACHE_DURATION" validate:"required,gt=0"`
+	}
+	Database struct {
+		Driver string `envconfig:"DB_DRIVER" validate:"required"`
+		Host   string `envconfig:"DB_HOST" validate:"required"`
+		Port   int    `envconfig:"DB_PORT" validate:"required"`
+	}
+	Server struct {
+		Host string `envconfig:"SERVER_HOST" validate:"required"`
+		Port int    `envconfig:"SERVER_PORT" validate:"required"`
+	}
 }
 
-func LoadConfiguration(filename string) (config models.Config, err error) {
-
-	configFile, err := os.Open(filename)
+// LoadConfig reads the configuration from env
+func LoadConfig(validate *validator.Validate) (cfg *Config, err error) {
+	err = godotenv.Load()
 	if err != nil {
-		return config, err
+		return nil, fmt.Errorf("Error loading .env file:\n %v", err)
 	}
-	defer configFile.Close()
 
-	err = yaml.NewDecoder(configFile).Decode(&config)
+	cfg = &Config{}
 
-	return config, err
+	err = envconfig.Process("", cfg)
+	if err != nil {
+		return nil, fmt.Errorf("Error parsing .env file:\n %v", err)
+	}
+
+	err = validate.Struct(cfg)
+	if err != nil {
+		return nil, fmt.Errorf("Error validating config:\n %v", err)
+	}
+
+	return cfg, nil
 }
