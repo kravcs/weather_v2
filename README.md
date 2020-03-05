@@ -9,7 +9,7 @@ Run in command line
 ```bash
 $ mkdir myApp
 $ cd myApp
-$ git clone https://github.com/kravcs/U2VyZ2lpIEtyYXZjaGVua28gcmVjcnVpdG1lbnQgdGFzaw-.git .
+$ git clone https://github.com/kravcs/weather_v2.git .
 $ docker-compose up
 ```
 
