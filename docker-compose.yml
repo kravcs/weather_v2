@@ -11,7 +11,7 @@ services:
     build:
       context: .
     volumes:
-      - .:/go/src/github.com/kravcs/gogo
+      - .:/go/src/github.com/kravcs/weather_v2
     ports:
       - "8000:8000"
     depends_on:

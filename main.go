@@ -10,8 +10,8 @@ import (
 	"github.com/go-playground/validator"
 	"github.com/gorilla/mux"
 
-	cache "github.com/kravcs/gogo/cache"
-	redis "github.com/kravcs/gogo/cache/redis"
+	cache "github.com/kravcs/weather_v2/cache"
+	redis "github.com/kravcs/weather_v2/cache/redis"
 	cfg "github.com/kravcs/weather_v2/config"
 	handler "github.com/kravcs/weather_v2/handler"
 )
