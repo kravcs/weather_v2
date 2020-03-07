@@ -24,7 +24,7 @@ var (
 func main() {
 	validate := validator.New()
 
-	config, err := cfg.LoadConfig(validate)
+	err := cfg.LoadConfig(validate, &config)
 	if err != nil {
 		log.Fatalf("Error while loading configuration:\n %v", err.Error())
 	}
@@ -55,7 +55,7 @@ func serverStart() {
 		APIEnpoint:    config.API.Endpoint,
 		APIKey:        config.API.Apikey,
 		CacheDuration: config.Cache.Duration,
-		Storage: storage
+		Storage:       storage,
 	}
 	router.Handle("/weather", handler.ErrorHandler(wh.GetWeatherHandler)).Methods("GET")
 

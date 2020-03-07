@@ -29,23 +29,21 @@ type Config struct {
 }
 
 // LoadConfig reads the configuration from env
-func LoadConfig(validate *validator.Validate) (cfg *Config, err error) {
+func LoadConfig(validate *validator.Validate, cfg *Config) (err error) {
 	err = godotenv.Load()
 	if err != nil {
-		return nil, fmt.Errorf("Error loading .env file:\n %v", err)
+		return fmt.Errorf("Error loading .env file:\n %v", err)
 	}
-
-	cfg = &Config{}
 
 	err = envconfig.Process("", cfg)
 	if err != nil {
-		return nil, fmt.Errorf("Error parsing .env file:\n %v", err)
+		return fmt.Errorf("Error parsing .env file:\n %v", err)
 	}
 
 	err = validate.Struct(cfg)
 	if err != nil {
-		return nil, fmt.Errorf("Error validating config:\n %v", err)
+		return fmt.Errorf("Error validating config:\n %v", err)
 	}
 
-	return cfg, nil
+	return nil
 }
